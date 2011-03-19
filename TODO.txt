@@ -1,0 +1,7 @@
+- rotation with keyboard
+- adjust piece start position
+- game over when piece can't be spawned at start position
+- rows must disappear
+- score count
+- high score table
+- "start game" and "pause" buttons

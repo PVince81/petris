@@ -9,8 +9,6 @@ var fields;
 var currentBlock;
 var currentBlockX;
 var currentBlockY;
-var currentBlockHeight = 0;
-var currentBlockWidth = 0;
 
 var moveBlockX = 0;
 
@@ -18,8 +16,10 @@ var BLOCK_COLORS = ["#FFFFFF", "#808080", "#FF0000", "#FFFF00", "#00FF00", "#00F
 
 var gameTimer;
 var gameSpeed = 100;
-var blockSpeed = 1000;
+var blockSpeed = 500;
 var blockDelay = 0;
+// array of existing pieces
+var pieces = [];
 
 function gameStart()
 {
@@ -33,7 +33,6 @@ function gameStart()
         var column = [];
         for ( var j = 0; j < maxY; j++ )
         {
-            //column.push( Math.floor( Math.random() * BLOCK_COLORS.length ) );
             column.push( -1 );
         }
         fields.push(column);
@@ -50,6 +49,7 @@ function gameStart()
         currentBlock.push(column);
     }
 
+    initPieces();
     nextBlock();
     render();
 
@@ -59,19 +59,80 @@ function gameStart()
     document.onkeyup = keyUp;
 }
 
+function initPieces()
+{
+    pieces = [];
+    
+    // mirrored L
+    pieces.push([[0,0,0,0],[1,1,1,0],[0,0,1,0],[0,0,0,0]]);
+    // L
+    pieces.push([[0,0,0,0],[0,0,1,0],[1,1,1,0],[0,0,0,0]]);
+    // bar
+    pieces.push([[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]);
+    // 2x2 block
+    pieces.push([[0,0,0,0],[0,1,1,0],[0,1,1,0],[0,0,0,0]]);            
+    
+    pieces.push([[0,0,0,0],[1,1,0,0],[0,1,1,0],[0,0,0,0]]);            
+    pieces.push([[0,0,0,0],[0,1,1,0],[1,1,0,0],[0,0,0,0]]);            
+}
+
+function makeMatrix(x,y,value)
+{
+    var matrix = [];
+    for ( var i = 0; i < 4; i++ )
+    {
+        var column = [];
+        for ( var j = 0; j < 4; j++ )
+        {
+            column.push(value);        
+        }
+        matrix.push(column);
+    }
+    return matrix;
+}
+
+function rotatePiece(piece, right)
+{
+    var rPiece = makeMatrix(4,4,0);
+    for ( var i = 0; i < 4; i++ )
+    {
+        var column = piece[i];
+        for ( var j = 0; j < 4; j++ )
+        {
+            var block = column[j];
+            if ( right )
+                rPiece[3-i][j] = block;            
+            else
+                rPiece[j][3-i] = block;
+        }
+    }
+    return rPiece;
+}
+
 function nextBlock()
 {
     currentBlockX = maxX / 2 - 2;
     currentBlockY = 0;
-
-     // TODO: clear block
+    
+    var pieceIndex = Math.floor( Math.random() * pieces.length );
     var color = Math.floor( Math.random() * BLOCK_COLORS.length );
-    currentBlock[0][0] = color;
-    currentBlock[1][0] = color;
-    currentBlock[2][0] = color;
-    currentBlock[2][1] = color;
-    currentBlockHeight = 2;
-    currentBlockWidth = 3;
+    var rot = Math.floor( Math.random() * 4 ) - 1;
+    var piece = pieces[pieceIndex];
+    for ( var i = 0; i < 4; i++ )
+    {
+        var column = piece[i];
+        for ( var j = 0; j < 4; j++ )
+        {
+            var block = column[j];
+            currentBlock[j][i] = ( block != 0 )?color:-1;            
+        }
+    }
+    
+    while ( rot >= 0 )
+    {
+        currentBlock = rotatePiece(currentBlock, true);
+        rot--;
+    }
 }
 
 function drawBlock(x, y, block)
@@ -143,6 +204,33 @@ function postBlock()
     }
 }
 
+function blockAt(x, y)
+{
+    if ( x >= 0 && x < maxX
+        && y >= 0 && y < maxY )
+    {
+        return fields[x][y];
+    }
+    return 1; // assume blocks outside border
+}
+
+function canMove(vx,vy)
+{
+    for ( var i = 0; i < 4; i++ )
+    {
+        var column = currentBlock[i];        
+        for ( var j = 0; j < 4; j++ )
+        {
+            var block = column[j];
+            if ( block >= 0 && blockAt(i + currentBlockX + vx, j + currentBlockY + vy) >= 0 )
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 function gameLoop()
 {
     var rerender = false;
@@ -153,7 +241,7 @@ function gameLoop()
     else
     {
         blockDelay = 0;
-        if ( currentBlockY + currentBlockHeight < maxY )
+        if ( canMove(0, 1) )
         {
             currentBlockY += 1;
         }
@@ -167,7 +255,7 @@ function gameLoop()
 
     if ( moveBlockX != 0 )
     {
-        if ( ( moveBlockX < 0 && currentBlockX > 0 ) || ( moveBlockX > 0 && currentBlockX + currentBlockWidth < maxX ) )
+        if ( canMove(moveBlockX, 0) )
         {
             currentBlockX += moveBlockX;
         }
