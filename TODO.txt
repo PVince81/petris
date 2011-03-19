@@ -4,4 +4,5 @@
 - rows must disappear
 - score count
 - high score table
+- partial rendering
 - "start game" and "pause" buttons

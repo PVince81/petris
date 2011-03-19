@@ -21,36 +21,42 @@ var blockDelay = 0;
 // array of existing pieces
 var pieces = [];
 
+/**
+ * Makes a matrix of the given size and fill it with the given value.
+ * @param x matrix x size
+ * @param y matrix y size
+ * @param value value to fill the matrix with
+ * @return matrix initialized matrix 
+ */
+function makeMatrix(x,y,value)
+{
+    var matrix = [];
+    for ( var i = 0; i < x; i++ )
+    {
+        var column = [];
+        for ( var j = 0; j < y; j++ )
+        {
+            column.push(value);        
+        }
+        matrix.push(column);
+    }
+    return matrix;
+}
+
+/**
+ * Starts the game.
+ */
 function gameStart()
 {
     canvas = document.getElementById("gameCanvas");
     canvas.width = maxX * blockSize;
     canvas.height = maxY * blockSize;
     context = canvas.getContext("2d");
-    fields = [];
-    for ( var i = 0; i < maxX; i++ )
-    {
-        var column = [];
-        for ( var j = 0; j < maxY; j++ )
-        {
-            column.push( -1 );
-        }
-        fields.push(column);
-    }
-
-    currentBlock = [];
-    for ( var i = 0; i < 4; i++ )
-    {
-        var column = [];
-        for ( var j = 0; j < 4; j++ )
-        {
-            column.push(-1);
-        }
-        currentBlock.push(column);
-    }
+    fields = makeMatrix(maxX, maxY, -1);
+    currentBlock = makeMatrix(4, 4, -1);
 
     initPieces();
-    nextBlock();
+    nextPiece();
     render();
 
     gameTimer = setInterval(gameLoop, gameSpeed);
@@ -59,6 +65,9 @@ function gameStart()
     document.onkeyup = keyUp;
 }
 
+/**
+ * Initialize the different pieces.
+ */
 function initPieces()
 {
     pieces = [];
@@ -76,21 +85,12 @@ function initPieces()
     pieces.push([[0,0,0,0],[0,1,1,0],[1,1,0,0],[0,0,0,0]]);            
 }
 
-function makeMatrix(x,y,value)
-{
-    var matrix = [];
-    for ( var i = 0; i < 4; i++ )
-    {
-        var column = [];
-        for ( var j = 0; j < 4; j++ )
-        {
-            column.push(value);        
-        }
-        matrix.push(column);
-    }
-    return matrix;
-}
-
+/**
+ * Rotates the given piece 90 degrees.
+ * @param piece piece array
+ * @param right true if direction is right, false for left
+ * @return rotated piece (new instance)
+ */
 function rotatePiece(piece, right)
 {
     var rPiece = makeMatrix(4,4,0);
@@ -109,7 +109,10 @@ function rotatePiece(piece, right)
     return rPiece;
 }
 
-function nextBlock()
+/**
+ * Produces a new piece and put it at the starting position.
+ */
+function nextPiece()
 {
     currentBlockX = maxX / 2 - 2;
     currentBlockY = 0;
@@ -135,6 +138,12 @@ function nextBlock()
     }
 }
 
+/**
+ * Draws a block at the given position.
+ * @param x X position
+ * @param y Y position
+ * @param block block type
+ */
 function drawBlock(x, y, block)
 {
      if ( block < 0 )
@@ -147,6 +156,9 @@ function drawBlock(x, y, block)
      context.strokeRect(x, y, blockSize, blockSize);
 }
 
+/**
+ * Renders the game field.
+ */
 function render()
 {
     context.fillStyle = "#FFFFFF";
@@ -183,7 +195,10 @@ function render()
     }
 }
 
-function postBlock()
+/**
+ * Places the piece in the field matrix.
+ */
+function postPiece()
 {
     var x = currentBlockX;
     var y = currentBlockY;
@@ -214,6 +229,12 @@ function blockAt(x, y)
     return 1; // assume blocks outside border
 }
 
+/**
+ * Returns whether the current piece can be moved to the given direction.
+ * @param vx direction on the x axis (-1, 0 or 1)
+ * @param vy direction on the y axis (-1, 0 or 1)
+ * @return true if there is no block in the way, false otherwise
+ */
 function canMove(vx,vy)
 {
     for ( var i = 0; i < 4; i++ )
@@ -231,6 +252,9 @@ function canMove(vx,vy)
     return true;
 }
 
+/**
+ * Game loop.
+ */
 function gameLoop()
 {
     var rerender = false;
@@ -247,8 +271,8 @@ function gameLoop()
         }
         else
         {
-            postBlock();
-            nextBlock();
+            postPiece();
+            nextPiece();
         }
         rerender = true;
     }
@@ -267,8 +291,11 @@ function gameLoop()
         render();
     }
 
- }
+}
 
+/**
+ * Key up event handler.
+ */
 function keyUp(ev)
 {
     if ( ev.keyCode == 37 || ev.keyCode == 39 )
@@ -277,6 +304,9 @@ function keyUp(ev)
     }
 }
 
+/**
+ * Key down event handler.
+ */
 function keyDown(ev)
 {
     if ( ev.keyCode == 37 )
