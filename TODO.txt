@@ -1,8 +1,6 @@
-- rotation with keyboard
-- adjust piece start position
-- game over when piece can't be spawned at start position
-- rows must disappear
-- score count
+- view with next piece
+- beautify pieces
 - high score table
 - partial rendering
-- "start game" and "pause" buttons
+- "pause" button
+- improve rotation code: use real piece size/center

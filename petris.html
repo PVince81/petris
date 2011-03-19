@@ -2,8 +2,12 @@
 <head><title>Petris</title>
 <script language="JavaScript" type="text/javascript" src="petris.js"></script>
 </head>
-<body onload="gameStart();">
+<body onload="initGame();">
 <h1>Petris</h1>
-<canvas id="gameCanvas" width="200" height="300" style="border: 1px solid black">HTML5 canvas not supported !</canvas>
+<div><input type="button" value="Start game" onclick="startGame()"/></div>
+<div><canvas id="gameCanvas" width="200" height="300" style="border: 1px solid black">HTML5 canvas not supported !</canvas>
+Score :<span id="scoreDiv">0</span>
+</div>
+<div>by Vincent Petry using HTML5 canvas</div>
 </body>
 </html>
