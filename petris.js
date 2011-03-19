@@ -16,7 +16,10 @@ var moveBlockY = 0;
 var rotateBlock = 0;
 
 var BLOCK_COLORS = ["#A0A0A0", "#808080", "#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF"];
+// block speeds by level
+var BLOCK_SPEED = [1000, 900, 800, 700, 600, 500, 400, 200, 100, 50, 25, 0];
 var gradients;
+var backgroundGradient;
 
 var LINE_COUNT_SCORE = [1, 5, 10, 50, 100];
 var PIECES = [
@@ -52,8 +55,8 @@ var PIECES = [
 ];
 
 var gameTimer;
-var gameSpeed = 100;
-var blockSpeed = 500;
+var gameSpeed = 80;
+var blockSpeed = 1000;
 var blockDelay = 0;
 // array of existing pieces
 var pieces = [];
@@ -62,6 +65,10 @@ var gameStarted = false;
 var gameOver = false;
 
 var score = 0;
+var level = 0;
+
+var action = {};
+var previousAction = {};
 
 /**
  * Makes a matrix of the given size and fill it with the given value.
@@ -92,13 +99,16 @@ function initGame()
 {
     gameStarted = false;
     scoreDiv = document.getElementById("scoreDiv");
+    levelDiv = document.getElementById("levelDiv");
     canvas = document.getElementById("gameCanvas");
     canvas.width = maxX * blockSize;
     canvas.height = maxY * blockSize;
     context = canvas.getContext("2d");
     document.onkeydown = keyDown;
     document.onkeyup = keyUp;
+
     initGradiants();
+    drawBackground();
 }
 
 function initGradiants()
@@ -106,15 +116,29 @@ function initGradiants()
     gradients = []; 
     for ( var i = 0; i < BLOCK_COLORS.length; i++ )
     {
-//        var gradient = context.createLinearGradient(0, 0, blockSize, blockSize);
+        var gradient;
+        if (context.createRadialGradient)
+        {
+            gradient = context.createRadialGradient(0, blockSize, 20, blockSize + 5, -5, 1);
+        }
+        else
+        {
+            gradient = context.createLinearGradient(0, blockSize, blockSize, 0);
+        }
+        
         //gradient.addColorStop(0, "black");
-//        gradient.addColorStop(0, "black");
+        gradient.addColorStop(0, "black");
 //        gradient.addColorStop(1, BLOCK_COLORS[i]);
-        //gradient.addColorStop(0.5, BLOCK_COLORS[i]);
-//        gradient.addColorStop(1, "white");
-//        gradients.push(gradient);
-        gradients.push(BLOCK_COLORS[i]);
+        gradient.addColorStop(0.5, BLOCK_COLORS[i]);
+        gradient.addColorStop(1, "white");
+        gradients.push(gradient);
+//        gradients.push(BLOCK_COLORS[i]);
     }
+
+    //if (context.createRadialGradient)
+    backgroundGradient = context.createLinearGradient(0, maxY * blockSize, maxX * blockSize, 0);
+    backgroundGradient.addColorStop(0, "#A0A000");
+    backgroundGradient.addColorStop(1, "#FFFFFF");
 }
 
 /**
@@ -135,6 +159,9 @@ function startGame()
     rotateBlock = 0;
     blockDelay = 0;
     score = 0;
+    level = 0;
+    blockSpeed = BLOCK_SPEED[0];
+    updateDisplay();
 
     initPieces();
     nextPiece();
@@ -143,6 +170,7 @@ function startGame()
     gameTimer = setInterval(gameLoop, gameSpeed);
     gameStarted = true;
     gameOver = false;
+    render();
 }
 
 /**
@@ -223,7 +251,6 @@ function nextPiece()
             currentBlock[j][i] = ( block != 0 )?color:-1;
         }
     }
-
     
     while ( rot >= 0 )
     {
@@ -267,6 +294,11 @@ function drawBlock(x, y, block)
      {
          return;
      }
+    
+     // draw shadow first
+     context.fillStyle = "rgba(0,0,0,0.5)";
+     context.fillRect(x + 4, y + 4, blockSize, blockSize);
+
      context.fillStyle = gradients[block];
      context.fillRect(x, y, blockSize, blockSize);
      context.fillStyle = "#000000";
@@ -274,42 +306,65 @@ function drawBlock(x, y, block)
 }
 
 /**
- * Renders the game field.
+ * Renders the background.
  */
-function render()
+function drawBackground()
 {
-    context.fillStyle = "#FFFFFF";
-    context.fillRect(0,0, blockSize * maxX, blockSize * maxY );
+    //context.fillStyle = "#FFFFFF";
+    context.fillStyle = backgroundGradient;
+    context.fillRect(0, 0, maxX  * blockSize, maxY * blockSize );
+}
 
-    var x = 0;
-    var y = 0;
+/**
+ * Renders the game field or part of it.
+ */
+function render( x1, y1, x2, y2 )
+{
+    drawBackground();
+    context.save();
     for ( var i = 0; i < maxX; i++ )
     {
         var column = fields[i];
-        y = 0;
         for ( var j = 0; j < maxY; j++ )
         {
-            var block = column[j];
-            drawBlock(x, y, block);
-            y += blockSize;
+            var block;
+            // TODO: optimize this
+            if ( j >= currentBlockY && j < currentBlockY + 4 && i >= currentBlockX && i < currentBlockX + 4 )
+            {
+                block = currentBlock[i - currentBlockX][j - currentBlockY];
+                if ( block < 0 )
+                {
+                    block = column[j];
+                }
+            }
+            else
+            {
+                block = column[j];
+            }
+            drawBlock(0, 0, block);
+            context.translate(0, blockSize);
         }
-        x += blockSize;
+        context.translate(blockSize, -maxY * blockSize);
     }
-
-    x = currentBlockX * blockSize;
-    y = currentBlockY * blockSize;
+    
+    context.restore();
+/*
+    context.save();
+    context.translate(currentBlockX * blockSize, currentBlockY * blockSize);
+    
     for ( var i = 0; i < 4; i++ )
     {
         var column = currentBlock[i];
-        y = currentBlockY * blockSize;
         for ( var j = 0; j < 4; j++ )
         {
              var block = column[j];
-             drawBlock(x,y, block);
-             y += blockSize;
+             drawBlock(0,0, block);
+             context.translate(0, blockSize);
         }
-        x += blockSize;
+        context.translate(blockSize, -4 * blockSize);
     }
+*/
+    context.restore();
 
     if ( gameOver )
     {
@@ -345,10 +400,35 @@ function postPiece()
     }
 
     var lineCount = processLines();
-    score += LINE_COUNT_SCORE[lineCount];
-    scoreDiv.innerHTML = score;
+    addScore( LINE_COUNT_SCORE[lineCount] );
             
     nextPiece();
+}
+
+function addScore(points)
+{
+    var newLevel;
+    score += points;
+    newLevel = Math.floor( score / 1000 );
+    if ( newLevel > level )
+    {
+        level = newLevel;
+        if ( level > BLOCK_SPEED.length - 1 )
+        {
+            blockSpeed = BLOCK_SPEED[BLOCK_SPEED.length - 1];
+        }
+        else
+        {
+            blockSpeed = BLOCK_SPEED[level];
+        }
+    }
+    updateDisplay();
+}
+
+function updateDisplay()
+{
+    scoreDiv.innerHTML = score;
+    levelDiv.innerHTML = level;
 }
 
 /**
@@ -456,36 +536,36 @@ function gameLoop()
         else
         {
             postPiece();
-       }
+        }
         rerender = true;
     }
 
-    if ( rotateBlock != 0 )
+    if ( action.rotateBlock )
     {
         // TODO: collision test
-        var rotatedBlock = rotatePiece(currentBlock, (rotateBlock>0));
+        var rotatedBlock = rotatePiece(currentBlock, (action.rotateBlock>0));
         if ( !pieceOverlaps( currentBlockX, currentBlockY, rotatedBlock ) )
         {
             currentBlock = rotatedBlock;
             rerender = true;
         }
-        rotateBlock = 0;
+        action.rotateBlock = 0;
     }
 
-    if ( moveBlockX != 0 )
+    if ( action.moveBlockX )
     {
-        if ( !pieceOverlaps( currentBlockX + moveBlockX, currentBlockY, currentBlock) )
+        if ( !pieceOverlaps( currentBlockX + action.moveBlockX, currentBlockY, currentBlock) )
         {
-            currentBlockX += moveBlockX;
+            currentBlockX += action.moveBlockX;
         }
         rerender = true;
     }
 
-    if ( moveBlockY != 0 )
+    if ( action.moveBlockY )
     {
-        if ( !pieceOverlaps( currentBlockX, currentBlockY + moveBlockY, currentBlock) )
+        if ( !pieceOverlaps( currentBlockX, currentBlockY + action.moveBlockY, currentBlock) )
         {
-            currentBlockY += moveBlockY;
+            currentBlockY += action.moveBlockY;
         }
         else
         {
@@ -494,6 +574,7 @@ function gameLoop()
         rerender = true;
     }
 
+    // rerender near block
     if ( rerender )
     {
         render();
@@ -508,12 +589,12 @@ function keyUp(ev)
 {
     if ( ev.keyCode == 37 || ev.keyCode == 39 )
     {
-        moveBlockX = 0;
+        action.moveBlockX = 0;
         ev.preventDefault();
     }
     else if ( ev.keyCode == 40 )
     {
-        moveBlockY = 0;
+        action.moveBlockY = 0;
         ev.preventDefault();
     }
 }
@@ -525,22 +606,38 @@ function keyDown(ev)
 {
     if ( ev.keyCode == 37 ) // left
     {
-        moveBlockX = -1;
+        action.moveBlockX = -1;
         ev.preventDefault();
     }
     else if ( ev.keyCode == 39 ) // right
     {
-        moveBlockX = 1;
+        action.moveBlockX = 1;
         ev.preventDefault();
     }
     else if ( ev.keyCode == 38 ) // up
     {
-        rotateBlock = -1;
+        action.rotateBlock = -1;
         ev.preventDefault();
     }
     else if ( ev.keyCode == 40 ) // down
     {
-        moveBlockY = 1;
+        action.moveBlockY = 1;
         ev.preventDefault();
     }
 } 
+
+function actionMovePiece(v)
+{
+    action.moveBlockX = v;
+}
+
+function actionRotatePiece(v)
+{
+    action.rotateBlock = v;
+}
+
+function actionDropPiece(b)
+{ 
+    action.moveBlockY = b?1:0;
+}
+
