@@ -15,7 +15,7 @@ var moveBlockX = 0;
 var moveBlockY = 0;
 var rotateBlock = 0;
 
-var BLOCK_COLORS = ["#A0A0A0", "#808080", "#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF"];
+var BLOCK_COLORS = ["#A0A0A0", "#000000", "#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF"];
 // block speeds by level
 var BLOCK_SPEED = [1000, 900, 800, 700, 600, 500, 400, 200, 100, 50, 25, 0];
 var gradients;
@@ -119,11 +119,11 @@ function initGradiants()
         var gradient;
         if (context.createRadialGradient)
         {
-            gradient = context.createRadialGradient(0, blockSize, 20, blockSize + 5, -5, 1);
+            gradient = context.createRadialGradient(blockSize, blockSize, 20, -5, -5, 1);
         }
         else
         {
-            gradient = context.createLinearGradient(0, blockSize, blockSize, 0);
+            gradient = context.createLinearGradient(blockSize, blockSize, 0, 0);
         }
         
         //gradient.addColorStop(0, "black");
@@ -136,7 +136,7 @@ function initGradiants()
     }
 
     //if (context.createRadialGradient)
-    backgroundGradient = context.createLinearGradient(0, maxY * blockSize, maxX * blockSize, 0);
+    backgroundGradient = context.createLinearGradient(maxX * blockSize, maxY * blockSize, 0, 0);
     backgroundGradient.addColorStop(0, "#A0A000");
     backgroundGradient.addColorStop(1, "#FFFFFF");
 }
