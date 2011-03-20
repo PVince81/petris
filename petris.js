@@ -1,3 +1,24 @@
+/**
+ *  Petris - a tetris clone written in JavaScript using the HTML5 canvas.
+ *
+ *  By Vincent Petry - PVince81 at yahoo dot fr
+ *
+ *  ---------------------------------------------------------------------------
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.*
+ */
+
 var canvas;
 var context;
 var scoreDiv;
@@ -119,18 +140,18 @@ function initGradiants()
         var gradient;
         if (context.createRadialGradient)
         {
-            gradient = context.createRadialGradient(blockSize, blockSize, 20, -5, -5, 1);
+            gradient = context.createRadialGradient(blockSize, blockSize, 20, -10, -10, 1);
         }
         else
         {
-            gradient = context.createLinearGradient(blockSize, blockSize, 0, 0);
+            gradient = context.createLinearGradient(blockSize, blockSize, -10, -10);
         }
         
         //gradient.addColorStop(0, "black");
         gradient.addColorStop(0, "black");
 //        gradient.addColorStop(1, BLOCK_COLORS[i]);
         gradient.addColorStop(0.5, BLOCK_COLORS[i]);
-        gradient.addColorStop(1, "white");
+        gradient.addColorStop(1, "#FFFFFF");
         gradients.push(gradient);
 //        gradients.push(BLOCK_COLORS[i]);
     }

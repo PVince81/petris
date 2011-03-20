@@ -3,7 +3,7 @@
 <script language="JavaScript" type="text/javascript" src="petris.js"></script>
 </head>
 <body onload="initGame();" style="text-align: center;">
-<div style="margin-left: auto; margin-right: auto; width:400px">
+<div style="margin-left: auto; margin-right: auto; width:450px">
 <div style="text-align: left">
 <h1>Petris</h1>
 <div style="float:left"><canvas id="gameCanvas" width="200" height="300" style="border: 1px solid black">HTML5 canvas not supported !</canvas></div>
@@ -11,15 +11,22 @@
    <div><input type="button" value="Start game" onclick="startGame()"/></div>
    <div>Score :<span id="scoreDiv">0</span></div>
    <div>Level :<span id="levelDiv">0</span></div>
+   <div>&nbsp;</div>
+   <div>Use the arrow keys:</div>
+   <div><b>Up</b> rotates block</div>
+   <div><b>Down</b> accelerates block descent</div>
+   <div><b>Left/Right</b> move block</div>
 <!--
    <div><input type="button" value="Rotate" onmousedown="actionRotatePiece(-1);"/></div>
    <div><input type="button" value="Left" onmousedown="actionMovePiece(-1);" onmouseup="actionMovePiece(0);" />
    <input type="button" value="Right" onmousedown="actionMovePiece(1);" onmouseup="actionMovePiece(0);" /></div>
    <div><input type="button" value="Down" onmousedown="actionDropPiece(true);" onmouseup="actionDropPiece(false);"/></div>
 -->
+   <div>&nbsp;</div>
+   <div style="clear: both; font-size: 8pt;">By Vincent Petry using the HTML5 canvas</div>
+   <div style="clear: both; font-size: 8pt;"><a href="https://github.com/PVince81/petris">Github project page</a></div>
 </div>
 </div>
-<div style="clear: both">by Vincent Petry using HTML5 canvas</div>
 </div>
 </div>
 </body>
